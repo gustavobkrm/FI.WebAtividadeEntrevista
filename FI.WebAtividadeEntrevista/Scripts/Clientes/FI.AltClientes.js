@@ -1,11 +1,13 @@
 ﻿
 $(document).ready(function () {
+    $("#CPF").inputmask('999.999.999-99')
+
     if (obj) {
         $('#formCadastro #Nome').val(obj.Nome);
         $('#formCadastro #CEP').val(obj.CEP);
         $('#formCadastro #Email').val(obj.Email);
         $('#formCadastro #Sobrenome').val(obj.Sobrenome);
-        $('#formCadastro #CPF').val(obj.Sobrenome);
+        $('#formCadastro #CPF').val(obj.CPF);
         $('#formCadastro #Nacionalidade').val(obj.Nacionalidade);
         $('#formCadastro #Estado').val(obj.Estado);
         $('#formCadastro #Cidade').val(obj.Cidade);
