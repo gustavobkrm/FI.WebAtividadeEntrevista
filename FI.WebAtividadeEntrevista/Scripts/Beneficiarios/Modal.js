@@ -1,7 +1,10 @@
-function AbrirModal() { 
+function AbrirModal() {
     $("#CPFBeneficiario").inputmask('999.999.999-99')
-    if ($('#Beneficiarios').val() != '')
+    if ($('h2').filter(function () {
+        return $(this).text().trim() === 'Alterar Cliente';
+    }).length > 0) {
         AlterarBeneficiarios();
+    }
 }
 
 function IncluirBeneficiario() {
@@ -54,6 +57,18 @@ function AtualizaListaBeneficiarios() {
     $('#Beneficiarios').val(JSON.stringify(beneficiarios));
 }
 
+function ExcluirBeneficiario(id){
+    $.ajax({
+        url: '/Cliente/Excluir/' + id,
+        type: 'GET',
+        error: function () {
+            alert('Registro excluído com sucesso!');
+            location.reload();
+        }
+    });
+
+}
+
 function AlterarBeneficiarios() {
     $('#CPFBeneficiario').hide()
     $('#NomeBeneficiario').hide()
@@ -80,7 +95,7 @@ function AlterarBeneficiarios() {
                           <input type="hidden" class="idCliente" name="IdCliente" value="${beneficiario.IdCliente}">
                         <button onclick="AtualizaListaBeneficiarios()" class="btn btn-success btn-sm salvar" style="display: none;">Salvar</button>
                         <button class="btn btn-primary btn-sm alterar">Alterar</button>
-                        <button class="btn btn-primary btn-sm excluir">Excluir</button>
+                        <button onclick="ExcluirBeneficiario(${beneficiario.Id})" class="btn btn-primary btn-sm excluir">Excluir</button>
                       </div>
                     </div>
                 </div>`

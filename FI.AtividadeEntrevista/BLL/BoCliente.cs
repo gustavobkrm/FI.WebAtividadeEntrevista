@@ -55,8 +55,7 @@ namespace FI.AtividadeEntrevista.BLL
                 {
                     b.CPF = new string(b.CPF.Where(char.IsDigit).ToArray()).Trim();
                 }
-
-                ValidaCPF(cliente.CPF);
+                ValidaCPF(cliente.CPF, true);
 
                 using (TransactionScope transactionScope = new TransactionScope())
                 {
@@ -135,23 +134,23 @@ namespace FI.AtividadeEntrevista.BLL
         {
             foreach (var beneficiario in beneficiarios)
             {
-                ValidaCPF(beneficiario);
+                ValidaCPF(beneficiario, true);
 
                 cli.AtualizaBeneficiario(beneficiario);
             }
         }
-        private void ValidaCPF(string CPF)
+        private void ValidaCPF(string CPF, bool isAlteracao = false)
         {
-            if (VerificarExistencia(CPF))
+            if (!isAlteracao && VerificarExistencia(CPF))
                 throw new Exception("CPF Digitado já está cadastrado");
 
             if (!IsValidCPF(CPF))
                 throw new Exception("CPF Digitado é inválido");
         }
-        private void ValidaCPF(Beneficiario b)
+        private void ValidaCPF(Beneficiario b, bool isAlteracao = false)
         {
 
-            if (VerificarExistencia(b.CPF, b.IdCliente))
+            if (!isAlteracao && VerificarExistencia(b.CPF, b.IdCliente))
                 throw new Exception("CPF do beneficiario " + b.Nome + " já está cadastrado para esse cliente.");
 
             if (!IsValidCPF(b.CPF))

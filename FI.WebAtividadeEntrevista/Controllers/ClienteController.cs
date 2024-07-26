@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using FI.AtividadeEntrevista.DML;
 using Newtonsoft.Json;
 using Microsoft.Ajax.Utilities;
+using System.Reflection;
 
 namespace WebAtividadeEntrevista.Controllers
 {
@@ -91,6 +92,10 @@ namespace WebAtividadeEntrevista.Controllers
                 }
                 else
                 {
+
+                    var beneficiarios = string.IsNullOrEmpty(model.Beneficiarios) ? new List<BeneficiarioModel>() : JsonConvert.DeserializeObject<List<BeneficiarioModel>>(model.Beneficiarios) ?? new List<BeneficiarioModel>();
+
+
                     bo.Alterar(new Cliente()
                     {
                         Id = model.Id,
@@ -103,7 +108,14 @@ namespace WebAtividadeEntrevista.Controllers
                         Nome = model.Nome,
                         Sobrenome = model.Sobrenome,
                         Telefone = model.Telefone,
-                        CPF = model.CPF
+                        CPF = model.CPF,
+                        Beneficiarios = beneficiarios.Select(b => new Beneficiario
+                        {
+                            Id = b.Id,
+                            CPF = b.CPF,
+                            Nome = b.Nome,
+                            IdCliente = b.IdCliente
+                        }).ToList()
                     });
 
                     return Json("Cadastro alterado com sucesso");
@@ -111,7 +123,7 @@ namespace WebAtividadeEntrevista.Controllers
             }
             catch (Exception ex)
             {
-                return Json(ex.Message);
+                return Json(new { success = false, errorMessage = ex.Message });
             }
         }
 
@@ -176,6 +188,20 @@ namespace WebAtividadeEntrevista.Controllers
             catch (Exception ex)
             {
                 return Json(new { Result = "ERROR", Message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public ActionResult Excluir(long id)
+        {
+            try
+            {
+                BoCliente bo = new BoCliente();
+                bo.Excluir(id);
+                return View();
+            }
+            catch (Exception ex) {
+                return Json(new { success = false, errorMessage = ex.Message });
             }
         }
     }
