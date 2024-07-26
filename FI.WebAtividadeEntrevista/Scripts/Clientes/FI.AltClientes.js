@@ -12,8 +12,8 @@ $(document).ready(function () {
         $('#formCadastro #Estado').val(obj.Estado);
         $('#formCadastro #Cidade').val(obj.Cidade);
         $('#formCadastro #Logradouro').val(obj.Logradouro);
-        $('#formCadastro #Telefone').val(obj.Telefone);
         $('#formCadastro #Beneficiarios').val(obj.Beneficiarios);
+        $('#formCadastro #Telefone').val(obj.Telefone);
     }
 
     $('#formCadastro').submit(function (e) {
@@ -32,8 +32,8 @@ $(document).ready(function () {
                 "Estado": $(this).find("#Estado").val(),
                 "Cidade": $(this).find("#Cidade").val(),
                 "Logradouro": $(this).find("#Logradouro").val(),
-                "Telefone": $(this).find("#Telefone").val(),
-                "Beneficiarios": $(this).find("#Beneficiarios").val()
+                "Beneficiarios": $(this).find("#Beneficiarios").val(),
+                "Telefone": $(this).find("#Telefone").val()
             },
             error:
             function (r) {

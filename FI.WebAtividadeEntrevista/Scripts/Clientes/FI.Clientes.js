@@ -16,9 +16,8 @@ $(document).ready(function () {
                 "Estado": $(this).find("#Estado").val(),
                 "Cidade": $(this).find("#Cidade").val(),
                 "Logradouro": $(this).find("#Logradouro").val(),
-                "Telefone": $(this).find("#Telefone").val(),
-                "Beneficiarios": $(this).find("#Beneficiarios").val()
-
+                "Beneficiarios": $(this).find("#Beneficiarios").val(),
+                "Telefone": $(this).find("#Telefone").val()
             },
             error:
             function (r) {
@@ -28,10 +27,16 @@ $(document).ready(function () {
                     ModalDialog("Ocorreu um erro", "Ocorreu um erro interno no servidor.");
             },
             success:
-            function (r) {
-                ModalDialog("Sucesso!", r)
-                $("#formCadastro")[0].reset();
-            }
+                function (r) {
+                    if (r.errorMessage == undefined) {
+                        ModalDialog("Sucesso!", r)
+                        $("#formCadastro")[0].reset();
+                    }
+                    else {
+                        ModalDialog("Erro", r.errorMessage);
+                    }
+                }
+
         });
     })
     

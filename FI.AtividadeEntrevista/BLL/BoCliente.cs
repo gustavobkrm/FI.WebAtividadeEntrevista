@@ -2,8 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Transactions;
 
 namespace FI.AtividadeEntrevista.BLL
 {
@@ -15,17 +14,32 @@ namespace FI.AtividadeEntrevista.BLL
         /// <param name="cliente">Objeto de cliente</param>
         public long Incluir(DML.Cliente cliente)
         {
-            cliente.CPF = new string(cliente.CPF.Where(char.IsDigit).ToArray()).Trim();
+            try
+            {
+                cliente.CPF = new string(cliente.CPF.Where(char.IsDigit).ToArray()).Trim();
+                foreach (Beneficiario b in cliente.Beneficiarios)
+                {
+                    b.CPF = new string(b.CPF.Where(char.IsDigit).ToArray()).Trim();
+                }
 
-            if (VerificarExistencia(cliente.CPF))
-                throw new Exception("CPF Digitado já está cadastrado");
+                ValidaCPF(cliente.CPF);
 
-            if (!IsValidCPF(cliente.CPF))
-                throw new Exception("CPF Digitado é inválido");
+                using (TransactionScope transactionScope = new TransactionScope())
+                {
+                    DAL.DaoCliente cli = new DAL.DaoCliente();
+                    var idCliente = cli.Incluir(cliente);
 
+                    IncluirBeneficiarios(cliente.Beneficiarios, idCliente, cli);
 
-            DAL.DaoCliente cli = new DAL.DaoCliente();
-            return cli.Incluir(cliente);
+                    transactionScope.Complete();
+
+                    return idCliente;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         /// <summary>
@@ -34,16 +48,30 @@ namespace FI.AtividadeEntrevista.BLL
         /// <param name="cliente">Objeto de cliente</param>
         public void Alterar(DML.Cliente cliente)
         {
-            cliente.CPF = new string(cliente.CPF.Where(char.IsDigit).ToArray()).Trim();
+            try
+            {
+                cliente.CPF = new string(cliente.CPF.Where(char.IsDigit).ToArray()).Trim();
+                foreach (Beneficiario b in cliente.Beneficiarios)
+                {
+                    b.CPF = new string(b.CPF.Where(char.IsDigit).ToArray()).Trim();
+                }
 
-            if (VerificarExistencia(cliente.CPF))
-                throw new Exception("CPF Digitado já está cadastrado");
+                ValidaCPF(cliente.CPF);
 
-            if (!IsValidCPF(cliente.CPF))
-                throw new Exception("CPF Digitado é inválido");
+                using (TransactionScope transactionScope = new TransactionScope())
+                {
+                    DAL.DaoCliente cli = new DAL.DaoCliente();
+                    cli.Alterar(cliente);
 
-            DAL.DaoCliente cli = new DAL.DaoCliente();
-            cli.Alterar(cliente);
+                    AlterarBeneficiarios(cliente.Beneficiarios, cli);
+
+                    transactionScope.Complete();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         /// <summary>
@@ -57,6 +85,11 @@ namespace FI.AtividadeEntrevista.BLL
             return cli.Consultar(id);
         }
 
+        public List<DML.Beneficiario> GetBeneficiarios(long id)
+        {
+            DAL.DaoCliente cli = new DAL.DaoCliente();
+            return cli.GetBeneficiarios(id);
+        }
         /// <summary>
         /// Excluir o cliente pelo id
         /// </summary>
@@ -86,6 +119,46 @@ namespace FI.AtividadeEntrevista.BLL
             return cli.Pesquisa(iniciarEm,  quantidade, campoOrdenacao, crescente, out qtd);
         }
 
+        private void IncluirBeneficiarios(List<Beneficiario> beneficiarios, long idCliente, DAL.DaoCliente cli)
+        {
+            foreach (var beneficiario in beneficiarios)
+            {
+                beneficiario.IdCliente = idCliente;
+
+                ValidaCPF(beneficiario);
+
+                cli.IncluirBeneficiario(beneficiario);
+            }
+        }
+
+        private void AlterarBeneficiarios(List<Beneficiario> beneficiarios, DAL.DaoCliente cli)
+        {
+            foreach (var beneficiario in beneficiarios)
+            {
+                ValidaCPF(beneficiario);
+
+                cli.AtualizaBeneficiario(beneficiario);
+            }
+        }
+        private void ValidaCPF(string CPF)
+        {
+            if (VerificarExistencia(CPF))
+                throw new Exception("CPF Digitado já está cadastrado");
+
+            if (!IsValidCPF(CPF))
+                throw new Exception("CPF Digitado é inválido");
+        }
+        private void ValidaCPF(Beneficiario b)
+        {
+
+            if (VerificarExistencia(b.CPF, b.IdCliente))
+                throw new Exception("CPF do beneficiario " + b.Nome + " já está cadastrado para esse cliente.");
+
+            if (!IsValidCPF(b.CPF))
+                throw new Exception("CPF do beneficiario " + b.Nome + " é inválido.");
+        }
+
+
         /// <summary>
         /// VerificaExistencia
         /// </summary>
@@ -97,7 +170,13 @@ namespace FI.AtividadeEntrevista.BLL
             return cli.VerificarExistencia(CPF);
         }
 
-        private static bool IsValidCPF (string CPF)
+        public bool VerificarExistencia(string CPF, long idCliente)
+        {
+            DAL.DaoCliente cli = new DAL.DaoCliente();
+            return cli.VerificarExistencia(CPF, idCliente);
+        }
+
+        private bool IsValidCPF (string CPF)
         {
             if (string.IsNullOrWhiteSpace(CPF))
                 return false;
@@ -109,7 +188,8 @@ namespace FI.AtividadeEntrevista.BLL
             return CPF.EndsWith(VerificaDigitoCPF(CPF));
         }
 
-        private static string VerificaDigitoCPF(string CPF)
+
+        private string VerificaDigitoCPF(string CPF)
         {
             string cpfAuxiliar = CPF.Substring(0, 9);
             int soma = 0;

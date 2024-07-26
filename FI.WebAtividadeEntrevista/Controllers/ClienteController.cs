@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using FI.AtividadeEntrevista.DML;
 using Newtonsoft.Json;
+using Microsoft.Ajax.Utilities;
 
 namespace WebAtividadeEntrevista.Controllers
 {
@@ -42,7 +43,7 @@ namespace WebAtividadeEntrevista.Controllers
                 }
                 else
                 {
-                    var beneficiarios = JsonConvert.DeserializeObject<List<BeneficiarioModel>>(model.Beneficiarios);
+                    var beneficiarios = string.IsNullOrEmpty(model.Beneficiarios) ? new List<BeneficiarioModel>() : JsonConvert.DeserializeObject<List<BeneficiarioModel>>(model.Beneficiarios) ?? new List<BeneficiarioModel>();
 
                     model.Id = bo.Incluir(new Cliente()
                     {
@@ -61,14 +62,14 @@ namespace WebAtividadeEntrevista.Controllers
                             CPF = b.CPF,
                             Nome = b.Nome
                         }).ToList()
-                });
+                    });
 
 
                     return Json("Cadastro efetuado com sucesso");
                 }
             }
             catch (Exception ex) {
-                return Json(ex.Message);
+                return Json(new { success = false, errorMessage = ex.Message });
             }
         }
 
@@ -121,6 +122,7 @@ namespace WebAtividadeEntrevista.Controllers
             {
                 BoCliente bo = new BoCliente();
                 Cliente cliente = bo.Consultar(id);
+                cliente.Beneficiarios = bo.GetBeneficiarios(id);
                 Models.ClienteModel model = null;
 
                 if (cliente != null)
@@ -137,7 +139,8 @@ namespace WebAtividadeEntrevista.Controllers
                         Nome = cliente.Nome,
                         Sobrenome = cliente.Sobrenome,
                         Telefone = cliente.Telefone,
-                        CPF = cliente.CPF
+                        CPF = cliente.CPF,
+                        Beneficiarios = JsonConvert.SerializeObject(cliente.Beneficiarios)
                     };
                 }
 

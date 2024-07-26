@@ -1,4 +1,5 @@
-﻿using FI.AtividadeEntrevista.DML;
+﻿using FI.AtividadeEntrevista.BLL;
+using FI.AtividadeEntrevista.DML;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -30,7 +31,23 @@ namespace FI.AtividadeEntrevista.DAL
             parametros.Add(new System.Data.SqlClient.SqlParameter("CPF", cliente.CPF));
 
 
+
             DataSet ds = base.Consultar("FI_SP_IncClienteV2", parametros);
+            long ret = 0;
+            if (ds.Tables[0].Rows.Count > 0)
+                long.TryParse(ds.Tables[0].Rows[0][0].ToString(), out ret);
+            return ret;
+        }
+
+        internal long IncluirBeneficiario(DML.Beneficiario beneficiario)
+        {
+            List<System.Data.SqlClient.SqlParameter> parametros = new List<System.Data.SqlClient.SqlParameter>();
+
+            parametros.Add(new System.Data.SqlClient.SqlParameter("Nome", beneficiario.Nome));
+            parametros.Add(new System.Data.SqlClient.SqlParameter("CPF", beneficiario.CPF));
+            parametros.Add(new System.Data.SqlClient.SqlParameter("IdCliente", beneficiario.IdCliente));
+
+            DataSet ds = base.Consultar("FI_SP_IncBeneficiario", parametros);
             long ret = 0;
             if (ds.Tables[0].Rows.Count > 0)
                 long.TryParse(ds.Tables[0].Rows[0][0].ToString(), out ret);
@@ -53,6 +70,18 @@ namespace FI.AtividadeEntrevista.DAL
             return cli.FirstOrDefault();
         }
 
+        internal List<DML.Beneficiario> GetBeneficiarios(long Id)
+        {
+            List<System.Data.SqlClient.SqlParameter> parametros = new List<System.Data.SqlClient.SqlParameter>();
+
+            parametros.Add(new System.Data.SqlClient.SqlParameter("Id", Id));
+
+            DataSet ds = base.Consultar("FI_SP_ConsClienteBeneficiarios", parametros);
+            List<DML.Beneficiario> ben = ConverterBeneficiarios(ds);
+
+            return ben;
+        }
+
         internal bool VerificarExistencia(string CPF)
         {
             List<System.Data.SqlClient.SqlParameter> parametros = new List<System.Data.SqlClient.SqlParameter>();
@@ -60,6 +89,18 @@ namespace FI.AtividadeEntrevista.DAL
             parametros.Add(new System.Data.SqlClient.SqlParameter("CPF", CPF));
 
             DataSet ds = base.Consultar("FI_SP_VerificaCliente", parametros);
+
+            return ds.Tables[0].Rows.Count > 0;
+        }
+        internal bool VerificarExistencia(string CPF, long idCliente)
+        {
+            List<System.Data.SqlClient.SqlParameter> parametros = new List<System.Data.SqlClient.SqlParameter>();
+
+            parametros.Add(new System.Data.SqlClient.SqlParameter("CPF", CPF));
+            parametros.Add(new System.Data.SqlClient.SqlParameter("IdCliente", idCliente));
+
+
+            DataSet ds = base.Consultar("FI_SP_VerificaClienteBeneficiario", parametros);
 
             return ds.Tables[0].Rows.Count > 0;
         }
@@ -125,6 +166,17 @@ namespace FI.AtividadeEntrevista.DAL
         }
 
 
+         internal void AtualizaBeneficiario(DML.Beneficiario beneficiario)
+        {
+            List<System.Data.SqlClient.SqlParameter> parametros = new List<System.Data.SqlClient.SqlParameter>();
+
+            parametros.Add(new System.Data.SqlClient.SqlParameter("Nome", beneficiario.Nome));
+            parametros.Add(new System.Data.SqlClient.SqlParameter("CPF", beneficiario.CPF));
+            parametros.Add(new System.Data.SqlClient.SqlParameter("ID", beneficiario.Id));
+
+            base.Executar("FI_SP_AltBeneficiario", parametros);
+        }
+
         /// <summary>
         /// Excluir Cliente
         /// </summary>
@@ -158,6 +210,25 @@ namespace FI.AtividadeEntrevista.DAL
                     cli.Telefone = row.Field<string>("Telefone");
                     cli.CPF = row.Field<string>("CPF");
                     lista.Add(cli);
+                }
+            }
+
+            return lista;
+        }
+
+        private List<DML.Beneficiario> ConverterBeneficiarios(DataSet ds)
+        {
+            List<DML.Beneficiario> lista = new List<DML.Beneficiario>();
+            if (ds != null && ds.Tables != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            {
+                foreach (DataRow row in ds.Tables[0].Rows)
+                {
+                    DML.Beneficiario ben = new DML.Beneficiario();
+                    ben.Id = row.Field<long>("Id");
+                    ben.Nome = row.Field<string>("Nome");
+                    ben.CPF = row.Field<string>("CPF");
+                    ben.IdCliente = row.Field<long>("IdCliente");
+                    lista.Add(ben);
                 }
             }
 
