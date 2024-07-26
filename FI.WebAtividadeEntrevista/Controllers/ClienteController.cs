@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FI.AtividadeEntrevista.DML;
+using Newtonsoft.Json;
 
 namespace WebAtividadeEntrevista.Controllers
 {
@@ -41,6 +42,7 @@ namespace WebAtividadeEntrevista.Controllers
                 }
                 else
                 {
+                    var beneficiarios = JsonConvert.DeserializeObject<List<BeneficiarioModel>>(model.Beneficiarios);
 
                     model.Id = bo.Incluir(new Cliente()
                     {
@@ -53,8 +55,13 @@ namespace WebAtividadeEntrevista.Controllers
                         Nome = model.Nome,
                         Sobrenome = model.Sobrenome,
                         Telefone = model.Telefone,
-                        CPF = model.CPF
-                    });
+                        CPF = model.CPF,
+                        Beneficiarios = beneficiarios.Select(b => new Beneficiario
+                        {
+                            CPF = b.CPF,
+                            Nome = b.Nome
+                        }).ToList()
+                });
 
 
                     return Json("Cadastro efetuado com sucesso");

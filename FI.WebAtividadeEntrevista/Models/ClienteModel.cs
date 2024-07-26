@@ -73,5 +73,9 @@ namespace WebAtividadeEntrevista.Models
         [Required]
         public string CPF { get; set; }
 
+        /// <summary>
+        /// Beneficiarios do cliente em json
+        /// </summary>
+        public string Beneficiarios { get; set; }
     }
 }
